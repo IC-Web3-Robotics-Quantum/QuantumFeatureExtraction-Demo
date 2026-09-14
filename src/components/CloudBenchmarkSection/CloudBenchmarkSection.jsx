@@ -35,7 +35,7 @@ export function CloudBenchmarkSection() {
       tag: 'Classification Performance',
       src: '/cloud_artifacts/pr_curves-20260821T132724Z-675881.png',
       caption:
-        'Evaluation across 15 paired folds (mean ± 1 SD band). The Hybrid DQFE pipeline (dark blue) and Quantum pipeline (light blue) dramatically outperform raw sensor inputs (orange dashed) across all recall thresholds, achieving AP 0.728 vs 0.345.',
+        'Evaluation across 15 paired folds (mean ± 1 SD band). The Hybrid DQFM pipeline (dark blue) and Quantum pipeline (light blue) dramatically outperform raw sensor inputs (orange dashed) across all recall thresholds, achieving AP 0.728 vs 0.345.',
     },
   };
 
@@ -57,14 +57,14 @@ export function CloudBenchmarkSection() {
             </span>
             <span className="cloud-backend-tag">
               <Cpu size={13} />
-              Backend: ibm_aer (Rimay DQFE)
+              Backend: ibm_aer (Rimay DQFM)
             </span>
           </div>
           <h2 className="section-title" style={{ marginTop: 8 }}>
             Real Cloud Solver Benchmark & Empirical Evidence
           </h2>
           <p className="section-description">
-            Live results from batch quantum feature extraction executed on Kipu Quantum Hub using 3,000 industrial mining shovel records (2,000 train / 1,000 test, 15 paired cross-validation folds).
+            Live results from batch quantum feature mapping executed on Kipu Quantum Hub using 3,000 industrial mining shovel records (2,000 train / 1,000 test, 15 paired cross-validation folds).
           </p>
         </div>
 
