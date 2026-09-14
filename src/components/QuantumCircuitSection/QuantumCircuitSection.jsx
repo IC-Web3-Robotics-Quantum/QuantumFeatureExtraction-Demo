@@ -26,11 +26,11 @@ export function QuantumCircuitSection({ circuitOpen, onToggle }) {
       if (pct < 30) {
         setStageText('Phase 1/3: Encoding 4 physical signals into multi-qubit Spin Hamiltonian H(x)...');
       } else if (pct < 70) {
-        setStageText('Phase 2/3: Executing Trotterized Counterdiabatic Evolution on DQFE Core...');
+        setStageText('Phase 2/3: Executing Trotterized Counterdiabatic Evolution on DQFM Core...');
       } else if (pct < 100) {
         setStageText('Phase 3/3: Measuring 14 Multi-Body Observables ⟨Zᵢ⟩, ⟨Xᵢ⟩, ⟨ZᵢZⱼ⟩ across Hilbert Space...');
       } else {
-        setStageText('✓ Execution Complete — Derived Quantum Observables Extracted!');
+        setStageText('✓ Execution Complete — Derived Quantum Observables Mapped!');
         clearInterval(intervalRef.current);
         setIsExecuting(false);
         setHasExecuted(true);
@@ -72,12 +72,12 @@ export function QuantumCircuitSection({ circuitOpen, onToggle }) {
           <span className="kq-btn-icon">{isExecuting ? '⏳' : '⚡'}</span>
           <span className="kq-btn-text">
             {isExecuting
-              ? 'Executing DQFE Pipeline...'
+              ? 'Executing DQFM Pipeline...'
               : circuitOpen
-              ? '▲ Hide DQFE Preliminary Insights'
-              : '⚡ Run Digitized Counterdiabatic DQFE Engine — Reveal Key Insights'}
+              ? '▲ Hide DQFM Preliminary Insights'
+              : '⚡ Run Digitized Counterdiabatic DQFM Engine — Reveal Key Insights'}
           </span>
-          <span className="kq-btn-badge">DQFE ENGINE</span>
+          <span className="kq-btn-badge">DQFM ENGINE</span>
         </button>
 
         {circuitOpen && hasExecuted && !isExecuting && (
@@ -85,7 +85,7 @@ export function QuantumCircuitSection({ circuitOpen, onToggle }) {
             type="button"
             className="kq-rerun-btn"
             onClick={handleReRun}
-            title="Re-run the feature extraction pipeline"
+            title="Re-run the feature mapping pipeline"
           >
             ↻ Re-Run Pipeline
           </button>
@@ -100,7 +100,7 @@ export function QuantumCircuitSection({ circuitOpen, onToggle }) {
               <div className="kq-progress-header">
                 <div className="kq-progress-title">
                   <span className="kq-pulse-dot" />
-                  Digitized Counterdiabatic DQFE Engine Active
+                  Digitized Counterdiabatic DQFM Engine Active
                 </div>
                 <div className="kq-progress-percentage mono-val">{progress}%</div>
               </div>
@@ -124,7 +124,7 @@ export function QuantumCircuitSection({ circuitOpen, onToggle }) {
               <div className="kq-results-banner">
                 <div className="kq-banner-pill">PRELIMINARY HIGHLIGHTS</div>
                 <h3 className="kq-results-title">
-                  Digitized Counterdiabatic DQFE — Key Preliminary Insights
+                  Digitized Counterdiabatic DQFM — Key Preliminary Insights
                 </h3>
                 <p className="kq-results-subtitle">
                   High-dimensional quantum state evolution transforms noisy industrial telemetry into decorrelated, high-entropy observables before classical classification.

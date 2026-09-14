@@ -60,7 +60,7 @@ export function SourceDataSection({
         </div>
       </div>
 
-      <div className="extraction-flow-container">
+      <div className="mapping-flow-container">
         <div className="flow-badge flow-badge-asset">
           <span className="flow-pulse-dot" />
           <strong>Electric Rope Shovel Asset</strong>

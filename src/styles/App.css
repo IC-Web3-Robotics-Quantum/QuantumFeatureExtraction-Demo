@@ -1111,7 +1111,7 @@ input[type="range"] {
   }
 }
 
-/* --- Kipu Quantum DQFE Execution & Insights Section --- */
+/* --- Kipu Quantum DQFM Execution & Insights Section --- */
 .kq-pipeline-card {
   max-width: 1500px;
   margin: 0 auto 20px;
@@ -1588,7 +1588,7 @@ input[type="range"] {
   .sensor-grid { grid-template-columns: 1fr; }
 }
 
-/* --- Animated Extraction Flow Bar --- */
+/* --- Animated Mapping Flow Bar --- */
 @keyframes flowLaser {
   0% { left: -35%; opacity: 0; }
   25% { opacity: 1; }
@@ -1601,7 +1601,7 @@ input[type="range"] {
   50% { transform: scale(1.4); opacity: 1; box-shadow: 0 0 10px currentColor; }
 }
 
-.extraction-flow-container {
+.mapping-flow-container {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1703,7 +1703,7 @@ input[type="range"] {
 }
 
 @media (max-width: 900px) {
-  .extraction-flow-container {
+  .mapping-flow-container {
     flex-direction: column;
     gap: 16px;
   }
