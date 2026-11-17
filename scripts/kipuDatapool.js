@@ -89,7 +89,7 @@ async function main() {
     inputPool = await client.dataPools.createDataPool(
       {
         name: poolName,
-        description: 'Input dataset for Rimay Quantum Feature Extraction (contains data.json with mining shovel telemetry).',
+        description: 'Input dataset for Rimay Quantum Feature Mapping (contains data.json with mining shovel telemetry).',
       },
       reqOptions
     );
@@ -130,7 +130,7 @@ async function main() {
     outputPool = await client.dataPools.createDataPool(
       {
         name: poolName,
-        description: 'Output DataPool for receiving Rimay Quantum Feature Extraction numpy arrays (Xq_train, Xq_test).',
+        description: 'Output DataPool for receiving Rimay Quantum Feature Mapping numpy arrays (Xq_train, Xq_test).',
       },
       reqOptions
     );

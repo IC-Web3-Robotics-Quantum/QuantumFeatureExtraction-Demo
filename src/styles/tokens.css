@@ -1,6 +1,6 @@
 /**
  * @file tokens.css
- * NTT DATA Brand Visual System Tokens for Quantum Feature Extraction experience.
+ * NTT DATA Brand Visual System Tokens for Quantum Feature Mapping experience.
  * Sources: NTT DATA Brand Guidelines (pp. 19-22) and Master Plan specifications.
  */
 
@@ -41,9 +41,8 @@
      2. SCIENTIFIC REPRESENTATION ARMS
      ===================================================================== */
   --color-arm-raw: #FF7A00;          /* Raw classical sensor baseline */
-  --color-arm-quantum: #19A3FC;      /* Quantum extracted observables */
+  --color-arm-quantum: #19A3FC;      /* Quantum-mapped observables */
   --color-arm-hybrid: #00DFED;       /* Hybrid combination (4+7) */
-  --color-arm-hgb: #9EACC2;          /* Classical non-linear HGB baseline */
 
   /* =====================================================================
      3. TYPOGRAPHY SCALES

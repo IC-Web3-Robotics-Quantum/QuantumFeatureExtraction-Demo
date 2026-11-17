@@ -1,6 +1,6 @@
 /**
  * @file index.js
- * Domain layer entrypoint for NTT DATA × Kipu Quantum Feature Extraction.
+ * Domain layer entrypoint for NTT DATA × Kipu Quantum Feature Mapping.
  */
 
 export * from './featureCatalog.js';

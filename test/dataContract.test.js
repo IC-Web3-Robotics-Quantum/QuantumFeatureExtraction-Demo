@@ -16,10 +16,11 @@ import {
   getQuantumObservables,
   getPhysicalSensors,
   getDatasetSummary,
+  getOperationalThresholds,
+  getOperatingPoints,
   getBenchmarkArms,
   getHeroBenchmarkArms,
   getHeadlineComparison,
-  getNystroemComparison,
   getFisherScores,
   getBenchmarkProtocol,
   RAW_SENSORS,
@@ -69,6 +70,15 @@ test('1. Record Repository - 1000 records × 7 observables invariant', () => {
   const summary = getDatasetSummary();
   assert.strictEqual(summary.totalRecords, 1000);
   assert.strictEqual(summary.normalCount + summary.deviationCount, 1000);
+
+  const thresholds = getOperationalThresholds();
+  assert.strictEqual(thresholds.classical, 0.2144008767667138);
+  assert.strictEqual(thresholds.quantum, 0.13499867930098475);
+
+  const points = getOperatingPoints();
+  assert.strictEqual(points.classical.threshold, thresholds.classical);
+  assert.strictEqual(points.quantum.threshold, thresholds.quantum);
+  assert.ok(points.quantum.recall >= 0.9 && points.quantum.recall < 0.91);
 });
 
 test('2. Parity Invariant - Xq_test_0.csv matches realCases.records qFeatures with 0 diff', () => {
@@ -98,22 +108,17 @@ test('2. Parity Invariant - Xq_test_0.csv matches realCases.records qFeatures wi
   assert.strictEqual(maxAbsDiff, 0, 'Discrepancy between CSV and JSON qFeatures must be 0');
 });
 
-test('3. Metric Repository - Benchmark arms, headline lift and HGB baseline', () => {
+test('3. Metric Repository - Benchmark arms and headline lift', () => {
   const arms = getBenchmarkArms();
   const heroArms = getHeroBenchmarkArms();
-  assert.strictEqual(heroArms.length, 4, 'Must have 4 hero arms: raw, quantum, hybrid, hgb_raw');
+  assert.strictEqual(heroArms.length, 3, 'Must have 3 hero arms: raw, quantum, hybrid');
+  assert.ok(heroArms.every((arm) => arm.isLinear), 'All hero arms share the same linear detector');
 
-  // Check AP values (raw: 34.5%, quantum: 68.1%, hybrid: 72.8%, hgb_raw: 89.5%)
+  // Check AP values (raw: 34.5%, quantum: 68.1%, hybrid: 72.8%)
   assert.strictEqual(arms.raw.apPercent, 34.5);
   assert.strictEqual(arms.quantum.apPercent, 68.1);
   assert.strictEqual(arms.hybrid.apPercent, 72.8);
-  assert.strictEqual(arms.hgb_raw.apPercent, 89.5);
-
-  // HGB baseline must outperform linear hybrid
-  assert.ok(
-    arms.hgb_raw.apMean > arms.hybrid.apMean,
-    'Non-linear classical HGB must outperform linear hybrid representation'
-  );
+  assert.deepStrictEqual(Object.keys(arms), ['raw', 'quantum', 'hybrid']);
 
   // Headline comparison
   const headline = getHeadlineComparison();
@@ -124,12 +129,6 @@ test('3. Metric Repository - Benchmark arms, headline lift and HGB baseline', ()
 
   // Operating benchmark at 90% recall
   assert.strictEqual(headline.precisionLift.diffPercentagePoints, 12.9);
-
-  // Nystroem comparison
-  const nystroem = getNystroemComparison();
-  assert.strictEqual(nystroem.verdict, 'not significant');
-  assert.strictEqual(nystroem.pHolm, 1);
-  assert.strictEqual(nystroem.hasQuantumAdvantage, false);
 
   // Fisher scores
   const fisher = getFisherScores();

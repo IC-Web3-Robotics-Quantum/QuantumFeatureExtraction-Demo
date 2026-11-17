@@ -1,5 +1,5 @@
 """
-Script to execute Kipu Quantum Crane Anomaly Demo Workflow (Rimay Feature Extraction).
+Script to execute Kipu Quantum Crane Anomaly Demo Workflow (Rimay Feature Mapping).
 Based on official instructions from Robert Lahmann (Kipu Quantum).
 """
 

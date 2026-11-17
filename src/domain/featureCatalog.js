@@ -156,7 +156,7 @@ export const DIMENSIONALITY_STAGES = Object.freeze([
     count: 7,
     title: 'Quantum Observable Space',
     formula: '4 single-body + 3 correlators',
-    description: 'Expectation values of Pauli observables extracted after counterdiabatic evolution.',
+    description: 'Expectation values of Pauli observables measured after counterdiabatic evolution.',
     isLinearSeparable: true,
   },
   {

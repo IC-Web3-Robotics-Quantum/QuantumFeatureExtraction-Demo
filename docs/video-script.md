@@ -26,7 +26,7 @@ Narrated screen recording, ~8–9 minutes. Read the narration as written; **[SCR
 
 ## 2. Revealing the real cloud results (1:15–4:15)
 
-**[SCREEN]** Click **"⚡ Run DQFE Engine — Reveal Key Insights"**.
+**[SCREEN]** Click **"⚡ Run DQFM Engine — Reveal Key Insights"**.
 
 **Narration:**
 > "These results were already computed by Kipu's quantum service, on 3,000 real mining shovel records. This is revealing them, not computing them live."

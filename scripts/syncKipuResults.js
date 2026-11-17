@@ -85,7 +85,7 @@ async function main() {
   const { training } = R;
 
   const kipuModel = {
-    source: 'Kipu Quantum Hub - Crane Anomaly Demo (Rimay DQFE)',
+    source: 'Kipu Quantum Hub - Crane Anomaly Demo (Rimay DQFM)',
     serviceEndpoint: process.env.KIPU_SERVICE_ENDPOINT || 'https://gateway.hub.kipu-quantum.com/cbcdab29-117c-40d1-8513-39d312143a6b/crane-anomaly-demo/1.0.0',
     organizationId: orgId,
     inputDataPoolId: inputPoolId,

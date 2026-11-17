@@ -1,5 +1,4 @@
 import { useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
 import { Heatmap } from '../Heatmap/Heatmap.jsx';
 import { HeatmapLegend } from '../Heatmap/HeatmapLegend.jsx';
 import { Scatter } from '../Scatter/Scatter.jsx';
@@ -35,7 +34,7 @@ function MatricesTab({ result }) {
             <span className="feature-kicker">Local correlation</span>
             <h2>Raw sensor matrix · 4 × 4</h2>
           </div>
-          <span className="feature-source-label">Test records · locally calculated</span>
+          <span className="feature-source-label">1,000 test records</span>
         </div>
         <div className="feature-heatmap"><Heatmap matrix={result.classical.corr} labels={RAW} showValues /></div>
         <HeatmapLegend />
@@ -46,14 +45,13 @@ function MatricesTab({ result }) {
             <span className="feature-kicker">Local correlation</span>
             <h2>Observable matrix · 7 × 7</h2>
           </div>
-          <span className="feature-source-label">Saved observables · test records</span>
+          <span className="feature-source-label">1,000 test records</span>
         </div>
         <div className="feature-heatmap"><Heatmap matrix={result.quantum.corr} labels={QNAMES_SHORT} showValues /></div>
         <HeatmapLegend />
       </section>
       <p className="feature-method-note">
-        These are correlation matrices calculated locally from the 1,000 saved test records.
-        They describe feature relationships; they are not Hamiltonian coupling maps.
+        Each cell shows how strongly two features move together across the 1,000 test records.
       </p>
       <div className="feature-original-evidence">
         <span className="feature-kicker">Original Kipu evidence</span>
@@ -89,7 +87,7 @@ function ScatterTab({ result, rawAxes, quantumAxes, setRawAxes, setQuantumAxes, 
       <section className="feature-chart-card">
         <div className="feature-chart-heading">
           <div><span className="feature-kicker">Two-variable projection</span><h2>Quantum observable space</h2></div>
-          <span className="feature-source-label">Not a literal Hilbert-space plot</span>
+          <span className="feature-source-label">Two observables at a time</span>
         </div>
         <div className="feature-axis-controls">
           <AxisSelect label="X" value={quantumAxes[0]} options={QNAMES_SHORT} onChange={(value) => setQuantumAxes([value, quantumAxes[1]])} />
@@ -98,8 +96,8 @@ function ScatterTab({ result, rawAxes, quantumAxes, setRawAxes, setQuantumAxes, 
         <div className="feature-scatter"><Scatter points={quantumPoints} labels={labels} highlight={activeRecordId} xLabel={QNAMES_SHORT[quantumAxes[0]]} yLabel={QNAMES_SHORT[quantumAxes[1]]} accent="var(--color-brand-bright)" /></div>
       </section>
       <p className="feature-method-note">
-        Each point is one synthetic operating record. Color indicates the saved dataset
-        label; the outlined point is the active record #{activeRecordId}. Changing axes does not change it.
+        Each point is one operating record, colored by its label. The outlined point is
+        the active record #{activeRecordId}.
       </p>
     </div>
   );
@@ -113,7 +111,7 @@ function FisherTab() {
     <div className="feature-tab-grid feature-fisher-tab">
       <section className="feature-chart-card feature-fisher-card">
         <div className="feature-chart-heading">
-          <div><span className="feature-kicker">Precomputed benchmark metadata</span><h2>Quantum Fisher scores</h2></div>
+          <div><span className="feature-kicker">Benchmark metadata</span><h2>Quantum Fisher scores</h2></div>
           <span className="feature-source-label">Seven observables</span>
         </div>
         <div className="feature-fisher-list">
@@ -130,9 +128,8 @@ function FisherTab() {
         <span className="feature-kicker">How to read this</span>
         <h2>Separability, not feature importance.</h2>
         <p>
-          These values describe marginal separability associated with each observable
-          in the benchmark metadata. They are not SHAP values and do not establish
-          a causal contribution or a quantum advantage.
+          How well each observable, on its own, separates normal from deviation
+          cases. A higher bar means a clearer split.
         </p>
       </aside>
     </div>
@@ -164,8 +161,7 @@ function DimensionsTab() {
         </div>
       </section>
       <p className="feature-method-note">
-        Dimension count describes representation shape only. It is not a proxy for
-        model performance, physical qubit count, or advantage.
+        Dimension count describes the shape of each representation, not its performance.
       </p>
     </div>
   );
@@ -203,8 +199,7 @@ export function FeatureSpaceScene() {
       {activeTab === 'dimensions' && <DimensionsTab />}
 
       <div className="feature-space-footer">
-        <span>Source: saved synthetic test records and validated benchmark metadata.</span>
-        <Link className="shell-nav-button shell-nav-button-primary" to="/results">Continue to results</Link>
+        <span>Source: 1,000 test records and benchmark results.</span>
       </div>
     </section>
   );

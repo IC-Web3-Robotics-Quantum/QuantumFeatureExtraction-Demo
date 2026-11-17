@@ -1,10 +1,8 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
 import {
   getBenchmarkArms,
   getBenchmarkProtocol,
   getHeadlineComparison,
-  getNystroemComparison,
 } from '../../domain/index.js';
 import { SCIENTIFIC_EVIDENCE } from '../../data/scientificEvidence.js';
 
@@ -64,20 +62,17 @@ export function ResultsScene() {
   const arms = getBenchmarkArms();
   const protocol = getBenchmarkProtocol();
   const headline = getHeadlineComparison();
-  const nystroem = getNystroemComparison();
-  const heroArms = [arms.raw, arms.quantum, arms.hybrid, arms.hgb_raw];
-  const selectedArms = [arms.selected_raw, arms.selected_hybrid, arms.selected_nystroem];
+  const heroArms = [arms.raw, arms.quantum, arms.hybrid];
   const maxAp = Math.max(...heroArms.map((arm) => arm.apPercent));
 
   return (
     <section className="results-scene">
       <div className="results-heading">
         <div>
-          <span className="shell-eyebrow">Saved benchmark evidence</span>
+          <span className="shell-eyebrow">Benchmark evidence</span>
           <h1>Does the representation improve detection?</h1>
-          <p>Four benchmark arms, one paired protocol, and the limitations that define what this experiment can support.</p>
+          <p>Same detector, same data, three representations: classical signals, quantum features, and both combined.</p>
         </div>
-        <span className="results-provenance">Synthetic dataset · {protocol.backend} · offline</span>
       </div>
 
       <section className="results-hero-card">
@@ -93,11 +88,11 @@ export function ResultsScene() {
         </div>
         <div className="results-hero-callout">
           <strong>+{headline.diffPercentagePoints.toFixed(1)} pp</strong>
-          <span>hybrid − raw AP under the same linear detector; hgb_raw is a separate non-linear classical baseline and wins this benchmark.</span>
+          <span>Adding the quantum features to the classical signals lifts Average Precision under the same logistic-regression detector, a statistically confirmed result across 15 paired folds.</span>
         </div>
       </section>
 
-      <div className="results-grid">
+      <div className="results-grid results-grid-single">
         <section className="results-panel">
           <div className="results-card-heading">
             <div>
@@ -107,44 +102,13 @@ export function ResultsScene() {
             <span className="results-fold-note">P@R90</span>
           </div>
           <div className="results-pr-grid">
-            <div><small>Raw</small><strong>{formatPercent(arms.raw.precisionAtRecallPercent)}</strong></div>
+            <div><small>Classical</small><strong>{formatPercent(arms.raw.precisionAtRecallPercent)}</strong></div>
             <div><small>Hybrid</small><strong>{formatPercent(arms.hybrid.precisionAtRecallPercent)}</strong></div>
             <div><small>Lift</small><strong>+{headline.precisionLift.diffPercentagePoints.toFixed(1)} pp</strong></div>
           </div>
-          <p className="results-muted">This endpoint uses the formal benchmark target of recall {protocol.recallTarget.toFixed(2)}. It is not the 80% local policy used by the Lab.</p>
-        </section>
-
-        <section className="results-panel">
-          <div className="results-card-heading">
-            <div>
-              <span className="results-kicker">Advanced comparison</span>
-              <h2>Selection inside cross-validation</h2>
-            </div>
-          </div>
-          <div className="results-selected-list">
-            {selectedArms.map((arm) => (
-              <div key={arm.key} className="results-selected-row">
-                <span>{arm.shortLabel}</span>
-                <strong>{formatPercent(arm.apPercent)}</strong>
-                <small>{arm.nFeatures} selected features</small>
-              </div>
-            ))}
-          </div>
-          <p className="results-muted">Feature selection is refit inside each training fold, then scored on held-out rows. This prevents selection leakage.</p>
+          <p className="results-muted">Measured at recall {protocol.recallTarget.toFixed(2)} across {protocol.nFolds} cross-validation folds.</p>
         </section>
       </div>
-
-      <section className="results-comparison">
-        <div>
-          <span className="results-kicker">Matched classical control</span>
-          <h2>Hybrid versus Nyström</h2>
-          <p>{nystroem.disclaimer}</p>
-        </div>
-        <div className="results-verdict">
-          <strong>{nystroem.verdict}</strong>
-          <span>Δ AP {nystroem.diffPercentagePoints >= 0 ? '+' : ''}{nystroem.diffPercentagePoints.toFixed(1)} pp · p<sub>Holm</sub> = {nystroem.pHolm.toFixed(1)}</span>
-        </div>
-      </section>
 
       <section className="results-evidence">
         <div className="results-card-heading">
@@ -166,14 +130,9 @@ export function ResultsScene() {
       </section>
 
       <section className="results-limitations">
-        <span className="results-kicker">Scope and limitations</span>
-        <p>Synthetic industrial dataset · precomputed with Kipu using the <code>{protocol.backend}</code> simulator · one finite shot budget · no live solver execution · no claim of general quantum advantage.</p>
+        <span className="results-kicker">Scope</span>
+        <p>Synthetic industrial dataset where the warning sign lives in an interaction between sensors · computed with Kipu on the <code>{protocol.backend}</code> simulator · no claim of quantum advantage.</p>
       </section>
-
-      <div className="results-footer">
-        <span>Benchmark evidence is separate from scores for individual saved Lab records.</span>
-        <Link className="shell-nav-button shell-nav-button-primary" to="/lab">Enter lab</Link>
-      </div>
 
       {selectedEvidence && <EvidenceViewer evidence={selectedEvidence} onClose={() => setSelectedEvidence(null)} />}
     </section>

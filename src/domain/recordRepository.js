@@ -42,6 +42,16 @@ for (let i = 0; i < realCasesBundle.records.length; i++) {
 const RECORDS = Object.freeze(realCasesBundle.records);
 const SCALER = Object.freeze(realCasesBundle.scaler);
 const TOTAL_COUNT = RECORDS.length;
+const OPERATIONAL_THRESHOLDS = Object.freeze({
+  classical: realCasesBundle.classical?.op?.threshold,
+  quantum: realCasesBundle.quantum?.op?.threshold,
+});
+
+for (const [model, threshold] of Object.entries(OPERATIONAL_THRESHOLDS)) {
+  if (typeof threshold !== 'number' || !Number.isFinite(threshold)) {
+    throw new Error(`[RecordRepository] Missing operational threshold for "${model}".`);
+  }
+}
 
 /**
  * Retrieves a single record by ID.
@@ -74,6 +84,25 @@ export function getAllRecords() {
  */
 export function getRecordsCount() {
   return TOTAL_COUNT;
+}
+
+/**
+ * Returns the validated operating thresholds from the canonical saved model.
+ */
+export function getOperationalThresholds() {
+  return OPERATIONAL_THRESHOLDS;
+}
+
+/**
+ * Returns the saved operating points behind the per-case alert thresholds.
+ * These were set on the same 1,000 saved test records (in-sample), so they are
+ * an illustrative operating point, not the cross-validated benchmark.
+ */
+export function getOperatingPoints() {
+  return Object.freeze({
+    classical: Object.freeze({ ...realCasesBundle.classical.op }),
+    quantum: Object.freeze({ ...realCasesBundle.quantum.op }),
+  });
 }
 
 /**

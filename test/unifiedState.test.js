@@ -87,7 +87,7 @@ test('4. Benchmark Invariance - Moving sliders or selecting cases does not alter
   const armsAfter = getBenchmarkArms();
   assert.strictEqual(armsAfter.raw.apPercent, 34.5);
   assert.strictEqual(armsAfter.hybrid.apPercent, 72.8);
-  assert.strictEqual(armsAfter.hgb_raw.apPercent, 89.5);
+  assert.strictEqual(armsAfter.quantum.apPercent, 68.1);
 });
 
 test('5. Single Source of Truth - Scores & Observables for any record ID', () => {

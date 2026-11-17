@@ -1,144 +1,92 @@
 # Quantum Feature Mapping Lab
 
-Demo interactivo (React + Vite) que compara dos representaciones de la
-misma telemetría de una pala eléctrica de minería (shovel): una
-**representación clásica** (los 4 sensores crudos) y una **representación
-cuántica** (14 observables derivados de un circuito simulado de 4 qubits).
-Ambas representaciones se validan con el mismo clasificador de referencia
-(regresión logística) para mostrar cómo cambia el espacio de features, no
-para afirmar que "lo cuántico es mejor".
+Demo React/Vite de NTT DATA × Kipu Quantum para explorar quantum feature mapping
+sobre telemetría industrial sintética. La experiencia actual es una secuencia
+de escenas guiadas con un laboratorio local; no ejecuta un solver remoto ni
+requiere conexión a internet para mostrar los resultados guardados.
 
-Demo en producción: https://quantum-feature-mappping-lab.vercel.app/
-
-## Cómo correrlo
+## Ejecutar
 
 ```bash
 npm install
 npm run dev       # http://localhost:5173
-npm run build     # build de producción en dist/
-npm run lint      # oxlint
+npm run lint
+npm test
+npm run build     # genera dist/
+npm run preview   # sirve dist/ localmente
 ```
 
-## Qué muestra el demo
+La demo funciona sin ESP32. El WebSocket es opcional y solo aporta lecturas
+físicas que se emparejan determinísticamente con un caso guardado.
 
-1. **Fuente física** — un shovel eléctrico sintético con 4 señales: Hoist
-   Load, Crowd Vib., Drive Temp., Cable Tension.
-2. **Representación clásica (2A)** vs **representación cuántica (2B)** —
-   mismos 4 valores, pasados por un mapeo cuántico real (RY + CNOT + CZ,
-   sin librerías, `src/utils/quantumSimulator.js`) que produce 14
-   observables ⟨Z⟩/⟨X⟩/⟨ZZ⟩.
-3. **Comparación de espacio de features** — correlación promedio, AUC y
-   tasa de falsas alarmas de cada representación, al mismo objetivo de
-   recall (≥ 80%).
-4. **Circuito cuántico** — diagrama de compuertas, generado desde el mismo
-   código que corre el mapeo (no hay una versión "ilustrativa" aparte).
+## Rutas de la experiencia
 
-Todo el dataset es sintético y determinista para un nivel de ruido dado
-(`Plant Noise`), generado en el navegador — no hay llamadas a red ni datos
-reales involucrados en esta parte.
+1. `/` — bienvenida.
+2. `/experience` — menú con recorrido guiado o acceso directo al Lab.
+3. `/challenge` — cuatro señales, presets y casos guardados.
+4. `/method` — explicación conceptual del encoding, evolución y readout.
+5. `/features` — matrices, scatter, Fisher y dimensionalidad.
+6. `/results` — benchmark precomputado y evidencia científica original.
+7. `/lab` — sliders, presets, selector de registro, readout y ESP32 opcional.
 
-## Estructura del proyecto
+El estado de `activeRecordId`, la lectura solicitada, el matching, los ejes y
+el modo se centraliza en `ExperienceProvider`.
 
-```
-src/
-├── data/            # constants.js, calibration.js, stagedScenarios.js, frozenModel.json
-├── utils/           # quantumSimulator, syntheticData, numeric, classifier,
-│                     # correlation, pipeline, liveScore, decisionStatus
-├── hooks/           # useThresholdPopover, useLiveBoard
-├── components/      # un componente por carpeta (Header, Heatmap, Scatter,
-│                     # FeatureSpaceCard, LiveBoardPanel, MachineDiagram, ...)
-├── styles/App.css
-└── App.jsx          # coordinador: estado + composición
-scripts/
-├── freezeModel.js        # congela los pesos del modelo a src/data/frozenModel.json
-├── findCuratedCases.js    # barre las 4 perillas y encuentra casos de contraste
-└── mockBoard.js           # servidor WS falso que emula el ESP32, para probar sin hardware
-docs/
-├── demo-fisico-spec.md    # spec de la fusión con el panel físico (ESP32)
-└── curated-cases.json     # salida de findCuratedCases.js
-```
+## Contrato de datos
 
-`App.jsx` es solo el coordinador: mantiene el estado (`noise`, `sample`,
-`circuitOpen`) y compone los componentes; toda la lógica de simulación,
-clasificación y estilos vive en sus propios módulos.
+- `src/data/realCases.json`: 1.000 casos guardados, cuatro sensores, siete
+  observables `q0..q3`, `corr_0_1`, `corr_1_2`, `corr_1_3`, labels y scores por
+  caso.
+- `src/data/kipuCloudModel.json`: métricas agregadas del benchmark de 15 folds,
+  AP, P@R90 y Fisher.
+- `public/cloud_artifacts/`: PNG originales del benchmark.
+- Los resultados Kipu fueron precomputados offline con backend `ibm_aer`.
+  `ibm_aer` identifica un simulador, no hardware IBM en vivo.
 
-## Panel físico / Live Board
+El Lab no interpola features ni inventa scores: un slider o una lectura ESP32
+se normaliza y se empareja con el vecino más cercano entre los 1.000 casos.
+Siempre se distinguen `requested reading`, `matched saved record`, distancia y
+origen. La distancia no es una probabilidad de confianza.
 
-Además del demo en navegador, el proyecto tiene una capa para fusionarse
-con un panel físico (perillas + switch + buzzer en un ESP32), documentada
-en detalle en [`docs/demo-fisico-spec.md`](docs/demo-fisico-spec.md).
+## Evidencia y límites
 
-**Idea central:** el ESP32 nunca reimplementa el clasificador ni el
-simulador cuántico — es un periférico de I/O. La página web (que ya tiene
-todo el modelo) recibe las lecturas físicas y calcula el veredicto.
+Results muestra tres brazos desde JSON, todos con el mismo detector lineal
+(regresión logística): raw, quantum e hybrid. El lift de hybrid frente a raw
+(+38.3 pp de AP, confirmado estadísticamente en 15 folds emparejados) se
+comunica siempre acotado a ese detector. No se afirma quantum advantage.
 
-### Modelo congelado
+El dataset es sintético y fue diseñado para que la señal relevante esté en
+una interacción entre sensores; el backend es precomputado y existe un
+presupuesto finito de shots. Consulta [docs/demo-guide.md](docs/demo-guide.md)
+para el guion de presentación.
 
-El pipeline normalmente reentrena en cada carga de página. Para que el
-panel físico dé siempre el mismo resultado ante la misma posición de
-perillas, los pesos se congelan una vez:
+Método: Digitized Counterdiabatic Quantum Feature Mapping (DQFM) de Kipu
+Quantum, ejecutado con su servicio Rimay. Referencia científica: A. Simen et
+al., arXiv:2510.13807 (2025), publicado con el título *Digitized
+Counterdiabatic Quantum Feature Extraction*.
+
+## Código legado
+
+`src/utils/quantumSimulator.js` pertenece a una arquitectura anterior. Produce
+14 observables mediante un simulador local, pero no es el camino activo de la
+experiencia actual. El flujo vigente lee los siete observables precomputados de
+`realCases.json`; no se debe describir el simulador legado como Rimay DQFM ni
+como un solver que corre durante la demo.
+
+Los scripts `kipu-submit`, `kipu-sync`, `kipu-datapool` y similares son
+herramientas offline/build-time y no se ejecutan desde la UI.
+
+## ESP32 opcional
+
+La pestaña WebSocket del Lab acepta payloads con `hoistLoad`, `crowdVib`,
+`driveTemp`, `cableTension` y opcionalmente `mode`. Los rangos se validan en
+el navegador; un payload inválido o una desconexión se muestran como error sin
+bloquear los sliders simulados.
+
+Para probar un mock local:
 
 ```bash
-npm run freeze-model
+npm run mock-board
 ```
 
-Esto genera `src/data/frozenModel.json` (pesos, medias/desviaciones de
-estandarización y umbrales de operación de ambos modelos, a `noise = 1`).
-`src/utils/liveScore.js` usa ese archivo para puntuar cualquier lectura
-física en tiempo real, sin reentrenar.
-
-### Probarlo sin hardware
-
-En el demo, botón **📡 Live Board** (arriba a la izquierda) → pestaña
-**🎚️ Simulate perillas**: cuatro sliders (en unidades reales: kN, mm/s,
-°C, MPa) que sustituyen a las perillas físicas. Corre 100% en el
-navegador — no necesita servidor ni conexión a nada. Sirve para demos en
-reuniones sin esperar al hardware de Victor.
-
-También hay una pestaña **🔌 Real board** para conectarse por WebSocket a
-un board real o al mock:
-
-```bash
-npm run mock-board   # levanta ws://localhost:8787 emulando al ESP32
-```
-
-Protocolo (mismo formato para el mock y para el ESP32 real):
-
-```jsonc
-// ESP32 -> navegador
-{ "hoistLoad": 437.5, "crowdVib": 12.5, "driveTemp": 200, "cableTension": 200, "mode": "quantum" }
-
-// navegador -> ESP32
-{ "classicalAlert": false, "quantumAlert": true }
-```
-
-### Casos curados
-
-```bash
-npm run find-curated-cases
-```
-
-Barre el espacio físico de las 4 variables contra el modelo congelado y
-escribe `docs/curated-cases.json` con las combinaciones más limpias donde
-clásico y cuántico coinciden o discrepan — usado para calibrar las
-muescas de las perillas físicas y como set de datos para
-`src/data/stagedScenarios.js`.
-
-### Rangos de calibración
-
-`src/data/calibration.js` mapea cada perilla (unidades reales) al dominio
-`[0,1]` en el que el modelo fue entrenado. **Drive Temp. y Cable Tension**
-ya usan los valores propuestos por Victor; **Hoist Load y Crowd Vib.**
-siguen como placeholder (`confirmed: false`) hasta validarlos con
-criterio de ingeniería real.
-
-### "Verdad conocida" (falsos positivos/negativos)
-
-El clasificador puntúa cualquier lectura, pero no existe una verdad
-independiente para una posición arbitraria de las perillas — ni el
-dataset de entrenamiento ni el de test son datos reales, y una lectura
-física nunca pasó por el generador que asigna etiquetas. Por eso
-`src/data/stagedScenarios.js` guarda un puñado de combinaciones curadas
-con una verdad asignada a mano (`knownTruth`), marcadas explícitamente
-como `reviewed: false` hasta que alguien con criterio de ingeniería real
-las confirme.
+No se envían muestras a Kipu desde el navegador.

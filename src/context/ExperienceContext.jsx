@@ -1,6 +1,6 @@
 /**
  * @file ExperienceContext.jsx
- * Unified state provider for NTT DATA × Kipu Quantum Feature Extraction.
+ * Unified state provider for NTT DATA × Kipu Quantum Feature Mapping.
  *
  * Ground rules:
  * - Single source of truth for: activeRecordId, requestedPhysical, inputOrigin,
@@ -19,6 +19,7 @@ import {
   getRecordsCount,
   getQuantumObservables,
   getPhysicalSensors,
+  getOperationalThresholds,
   findNearestRecord,
   getBenchmarkArms,
   getHeadlineComparison,
@@ -57,7 +58,7 @@ export function ExperienceProvider({ children }) {
   /**
    * Selects an exact record by ID (e.g. from record slider, table, or curated preset).
    */
-  const selectRecord = useCallback((id) => {
+  const selectRecord = useCallback((id, origin = 'record') => {
     const total = getRecordsCount();
     const clampedId = Math.max(0, Math.min(total - 1, Number(id) || 0));
     const targetRecord = getRecord(clampedId);
@@ -69,7 +70,7 @@ export function ExperienceProvider({ children }) {
       distance: 0,
       exact: true,
     });
-    setInputOrigin('record');
+    setInputOrigin(origin === 'preset' ? 'preset' : 'record');
   }, []);
 
   /**
@@ -117,8 +118,7 @@ export function ExperienceProvider({ children }) {
   const physicalSensors = useMemo(() => getPhysicalSensors(activeRecordId), [activeRecordId]);
 
   // Thresholds from canonical precomputed model
-  const classicalThreshold = 0.2231;
-  const quantumThreshold = 0.2097;
+  const { classical: classicalThreshold, quantum: quantumThreshold } = getOperationalThresholds();
 
   const classicalScore = activeRecord.classicalScore;
   const quantumScore = activeRecord.quantumScore;

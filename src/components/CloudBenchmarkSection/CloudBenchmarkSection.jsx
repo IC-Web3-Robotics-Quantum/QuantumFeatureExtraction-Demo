@@ -20,7 +20,6 @@ export function CloudBenchmarkSection() {
   const apRaw = arms.raw.apPercent;
   const apQuantum = arms.quantum.apPercent;
   const apHybrid = arms.hybrid.apPercent;
-  const apHgb = arms.hgb_raw.apPercent;
 
   const precRaw = arms.raw.precisionAtRecallPercent;
   const precHybrid = arms.hybrid.precisionAtRecallPercent;
@@ -149,16 +148,9 @@ export function CloudBenchmarkSection() {
               </div>
               <span className="bar-val">{apHybrid.toFixed(1)}%</span>
             </div>
-            <div className="kpi-bar-row" title="Non-linear Classical HistGradientBoosting on 4 sensors">
-              <span className="bar-label" style={{ color: '#9EACC2' }}>HGB (non-lin):</span>
-              <div className="bar-track">
-                <div className="bar-fill bar-hgb" style={{ width: `${apHgb}%` }} />
-              </div>
-              <span className="bar-val" style={{ color: '#9EACC2' }}>{apHgb.toFixed(1)}%</span>
-            </div>
           </div>
           <div className="kpi-detail" style={{ marginTop: 8, fontSize: '0.8rem', color: '#9EACC2' }}>
-            Linear detector improves by +{headline.diffPercentagePoints} pp with hybrid features. Non-linear classical HGB reaches {apHgb}%.
+            Linear detector improves by +{headline.diffPercentagePoints} pp with hybrid features.
           </div>
         </div>
       </div>
@@ -247,7 +239,7 @@ export function CloudBenchmarkSection() {
 
       {/* Explanatory bridge note */}
       <div className="cloud-bridge-note">
-        <strong>💡 Experimental Context:</strong> The benchmark was evaluated using 3,000 synthetic records with 15 paired folds. For the linear classifier, the hybrid representation delivers an AP lift of <strong>+{headline.diffPercentagePoints.toFixed(1)} percentage points</strong> (72.8% vs 34.5%). When compared against classical non-linear methods, HGB reaches 89.5% and the selected hybrid vs Nyström kernel shows no statistically significant difference (p = 1.0).
+        <strong>💡 Experimental Context:</strong> The benchmark was evaluated using 3,000 synthetic records with 15 paired folds. For the linear classifier, the hybrid representation delivers an AP lift of <strong>+{headline.diffPercentagePoints.toFixed(1)} percentage points</strong> (72.8% vs 34.5%).
       </div>
     </section>
   );

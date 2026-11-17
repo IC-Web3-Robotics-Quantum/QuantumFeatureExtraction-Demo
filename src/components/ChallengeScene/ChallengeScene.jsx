@@ -1,4 +1,3 @@
-import { Link } from 'react-router-dom';
 import { useState } from 'react';
 import { MachineDiagram } from '../MachineDiagram/MachineDiagram.jsx';
 import { SensorCard } from '../SensorCard/SensorCard.jsx';
@@ -19,14 +18,14 @@ function formatReading(value, unit) {
 }
 
 export function ChallengeScene() {
-  const { activeRecord, activeRecordId, match, requestedPhysical, selectRecord, setRequestedReading } =
-    useExperience();
+  const { activeRecord, activeRecordId, match, requestedPhysical, selectRecord } = useExperience();
   const [selectedSensor, setSelectedSensor] = useState(0);
   const sensorColors = [C.interaction, C.deviation, C.warning, C.classicalLight];
   const effectiveReadings = SENSOR_KEYS.map((key) => activeRecord.rawSensors[key]);
 
   const applyScenario = (scenario) => {
-    setRequestedReading(scenario.reading, 'preset');
+    // Curated cases point to a saved record: select it exactly (distance 0).
+    selectRecord(scenario.recordId, 'preset');
   };
 
   return (
@@ -36,9 +35,8 @@ export function ChallengeScene() {
           <span className="shell-eyebrow">The challenge</span>
           <h1>What can industrial telemetry reveal?</h1>
           <p>
-            Four physical signals form the input to an experiment on a synthetic
-            industrial scenario. Explore one saved case before examining its feature
-            representation.
+            Four physical signals from an electric rope shovel are the starting point.
+            Explore one case before seeing how its features are transformed.
           </p>
         </div>
         <span className="challenge-note">Synthetic industrial scenario</span>
@@ -46,7 +44,7 @@ export function ChallengeScene() {
 
       <div className="challenge-layout">
         <div className="challenge-machine-panel">
-          <div className="challenge-panel-label">Electric rope shovel · conceptual scene</div>
+          <div className="challenge-panel-label">Electric rope shovel</div>
           <div className="challenge-machine">
             <MachineDiagram alert={false} label={0} mode="quantum" />
             {SENSOR_MARKERS.map((marker, index) => (
@@ -64,8 +62,7 @@ export function ChallengeScene() {
             ))}
           </div>
           <div className="challenge-machine-caption">
-            Select a numbered point to inspect its signal. The diagram is an interface
-            for the scenario, not a claim about a deployed customer asset.
+            Select a numbered point to inspect its signal.
           </div>
         </div>
 
@@ -120,7 +117,7 @@ export function ChallengeScene() {
             min="0"
             max="999"
             value={activeRecordId}
-            onChange={(event) => selectRecord(event.target.value)}
+            onChange={(event) => selectRecord(Number(event.target.value))}
           />
           <span>#{activeRecordId}</span>
         </label>
@@ -140,8 +137,7 @@ export function ChallengeScene() {
       </div>
 
       <div className="challenge-footer">
-        <span>Same four signals, one synchronized record, no diagnosis implied.</span>
-        <Link className="shell-nav-button shell-nav-button-primary" to="/method">Continue to method</Link>
+        <span>Same four signals, one synchronized record.</span>
       </div>
     </section>
   );

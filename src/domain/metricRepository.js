@@ -6,8 +6,8 @@
  * - Reads directly from kipuCloudModel.json (cloudMetrics).
  * - NO SILENT FALLBACKS: throws descriptive errors if expected keys or arms are missing.
  * - The headline AP difference (hybrid - raw) is expressed in PERCENTAGE POINTS (+38.3 pp), not relative %.
- * - HGB (HistGradientBoosting) is a descriptive classical non-linear baseline (89.5% AP), which exceeds the linear hybrid model.
- * - The selected_hybrid vs selected_nystroem comparison has p_holm = 1.0 ("not significant"); no quantum advantage claim.
+ * - The showroom compares three arms under the SAME linear detector (raw, quantum, hybrid);
+ *   the claim is scoped to that detector, with no quantum advantage claim.
  * - Benchmark evaluation target recall is 0.90 across 15 paired folds.
  */
 
@@ -28,7 +28,7 @@ const ARM_CONFIG = Object.freeze({
   raw: {
     key: 'raw',
     label: 'Raw Signals Baseline',
-    shortLabel: 'Raw (4 sensors)',
+    shortLabel: 'Classical (4 sensors)',
     modelType: 'Linear (Logistic Regression)',
     isLinear: true,
     isPrimaryHero: true,
@@ -37,7 +37,7 @@ const ARM_CONFIG = Object.freeze({
   quantum: {
     key: 'quantum',
     label: 'Quantum Observables Only',
-    shortLabel: 'Quantum (7 obs)',
+    shortLabel: 'Quantum (7 observables)',
     modelType: 'Linear (Logistic Regression)',
     isLinear: true,
     isPrimaryHero: true,
@@ -46,44 +46,11 @@ const ARM_CONFIG = Object.freeze({
   hybrid: {
     key: 'hybrid',
     label: 'Hybrid Representation',
-    shortLabel: 'Hybrid (11 feats)',
+    shortLabel: 'Hybrid (4 + 7 features)',
     modelType: 'Linear (Logistic Regression)',
     isLinear: true,
     isPrimaryHero: true,
     colorToken: 'var(--color-interaction, #00DFED)',
-  },
-  hgb_raw: {
-    key: 'hgb_raw',
-    label: 'Classical Non-Linear (HGB)',
-    shortLabel: 'HGB Classical (4 sensors)',
-    modelType: 'Non-linear Classical (HistGradientBoosting)',
-    isLinear: false,
-    isPrimaryHero: true,
-    colorToken: 'var(--color-neutral-light, #9EACC2)',
-  },
-  selected_raw: {
-    key: 'selected_raw',
-    label: 'Selected Raw Features',
-    shortLabel: 'Selected Raw',
-    modelType: 'Linear (Logistic Regression)',
-    isLinear: true,
-    isPrimaryHero: false,
-  },
-  selected_hybrid: {
-    key: 'selected_hybrid',
-    label: 'Selected Hybrid Features',
-    shortLabel: 'Selected Hybrid',
-    modelType: 'Linear (Logistic Regression)',
-    isLinear: true,
-    isPrimaryHero: false,
-  },
-  selected_nystroem: {
-    key: 'selected_nystroem',
-    label: 'Selected Nyström Kernel',
-    shortLabel: 'Nyström Kernel Classical',
-    modelType: 'Non-linear Kernel Classical (Nyström + LogReg)',
-    isLinear: false,
-    isPrimaryHero: false,
   },
 });
 
@@ -121,11 +88,11 @@ export function getBenchmarkArms() {
 }
 
 /**
- * Returns the four primary showroom hero arms: raw, quantum, hybrid, hgb_raw.
+ * Returns the three showroom hero arms: raw, quantum, hybrid.
  */
 export function getHeroBenchmarkArms() {
   const arms = getBenchmarkArms();
-  return [arms.raw, arms.quantum, arms.hybrid, arms.hgb_raw];
+  return [arms.raw, arms.quantum, arms.hybrid];
 }
 
 /**
@@ -158,30 +125,7 @@ export function getHeadlineComparison() {
         }
       : null,
     guardrail:
-      'The AP improvement of ~38.3 percentage points applies to the same linear classifier. Classical non-linear HGB reaches 89.5% AP on raw sensors without quantum feature mapping.',
-  });
-}
-
-/**
- * Returns the selected hybrid vs selected Nyström comparison.
- */
-export function getNystroemComparison() {
-  const endpoint = metrics.endpoints?.selected_hybrid_vs_selected_nystroem;
-  if (!endpoint || !endpoint.dAP) {
-    throw new Error('[MetricRepository] Missing endpoint: selected_hybrid_vs_selected_nystroem.dAP');
-  }
-
-  const dAP = endpoint.dAP;
-
-  return Object.freeze({
-    contrast: dAP.contrast,
-    meanDiff: dAP.mean_diff,
-    diffPercentagePoints: Number((dAP.mean_diff * 100).toFixed(1)),
-    pHolm: dAP.p_holm,
-    verdict: dAP.verdict, // "not significant"
-    hasQuantumAdvantage: false,
-    disclaimer:
-      'No statistically significant difference (p_holm = 1.0) between selected hybrid quantum features and classical Nyström kernel approximation in this execution.',
+      'The AP improvement of ~38.3 percentage points applies to the same linear classifier (logistic regression).',
   });
 }
 

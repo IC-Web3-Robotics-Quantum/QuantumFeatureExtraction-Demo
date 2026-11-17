@@ -2,7 +2,7 @@
 
 ### Documento explicativo — cómo funciona y cómo se construye
 
-**Proyecto:** Demo físico interactivo — Digitized Counterdiabatic Quantum Feature Extraction (DQFE)
+**Proyecto:** Demo físico interactivo — Digitized Counterdiabatic Quantum Feature Mapping (DQFM)
 **Contexto:** Stand NTT Data - Kipu Quantum, Q2B Copenhagen
 **Alcance:** primera estación del recorrido ("el Encoder"). No cubre la Estación 2 (surrogates).
 
@@ -14,7 +14,7 @@
 
 Todo el diseño físico de esta estación existe para hacer *visible* esa idea, no para simular con precisión un computador cuántico. Es una traducción física y honesta del mecanismo del paper, no una réplica funcional del hardware.
 
-**Paper de referencia:** *Digitized Counterdiabatic Quantum Feature Extraction*, Simen et al., Kipu Quantum (arXiv:2510.13807).
+**Paper de referencia:** Simen et al., Kipu Quantum (arXiv:2510.13807), publicado como *Digitized Counterdiabatic Quantum Feature Extraction*; Kipu denomina hoy al método Quantum Feature Mapping (DQFM).
 
 ---
 

@@ -1,5 +1,5 @@
 import { findNearestRecord } from '../domain/nearestRecord.js';
-import { getRecord, getAllRecords } from '../domain/recordRepository.js';
+import { getRecord, getAllRecords, getOperationalThresholds } from '../domain/recordRepository.js';
 import realCases from '../data/realCases.json' with { type: 'json' };
 import frozenModel from '../data/frozenModel.json' with { type: 'json' };
 import kipuCloudModel from '../data/kipuCloudModel.json' with { type: 'json' };
@@ -29,8 +29,9 @@ export function liveScore(physicalReading, activeModel = realCases || kipuCloudM
   const snap = findNearestRealRecord(physicalReading);
   const r = snap?.bestRecord || getRecord(0);
 
-  const classicalThreshold = model.classical?.op?.threshold ?? model.classical?.threshold ?? 0.2231;
-  const quantumThreshold = model.quantum?.op?.threshold ?? model.quantum?.threshold ?? 0.2097;
+  const defaults = getOperationalThresholds();
+  const classicalThreshold = model.classical?.op?.threshold ?? model.classical?.threshold ?? defaults.classical;
+  const quantumThreshold = model.quantum?.op?.threshold ?? model.quantum?.threshold ?? defaults.quantum;
 
   const classicalScore = r.classicalScore;
   const quantumScore = r.quantumScore;

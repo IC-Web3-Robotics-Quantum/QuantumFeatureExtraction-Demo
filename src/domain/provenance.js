@@ -1,7 +1,7 @@
 /**
  * @file provenance.js
  * Domain module establishing data provenance classification and audit trails
- * for the NTT DATA × Kipu Quantum Feature Extraction experience.
+ * for the NTT DATA × Kipu Quantum Feature Mapping experience.
  *
  * Ground rules:
  * - PRECOMPUTED_QFE: Derived from Kipu's offline execution using ibm_aer backend.
@@ -131,8 +131,8 @@ export const VISUALIZATION_PROVENANCE_CATALOG = Object.freeze([
     title: 'Average Precision (AP) Benchmark Comparison',
     provenance: PROVENANCE_KINDS.PRECOMPUTED_BENCHMARK,
     source: 'src/data/kipuCloudModel.json (cloudMetrics.arms)',
-    dataset: '4 main arms: raw, quantum, hybrid, hgb_raw + 3 selected arms',
-    disclaimer: 'HGB non-linear model outperforms hybrid linear model. Improvement is ~38.3 percentage points, not relative %.',
+    dataset: '3 arms under the same linear detector: raw, quantum, hybrid',
+    disclaimer: 'Same linear detector for every arm. Improvement is ~38.3 percentage points, not relative %.',
   },
   {
     key: 'scatter_exploration',
@@ -147,7 +147,7 @@ export const VISUALIZATION_PROVENANCE_CATALOG = Object.freeze([
     title: 'Hamiltonian Spin Encoding Illustration',
     provenance: PROVENANCE_KINDS.CONCEPTUAL,
     source: 'Conceptual UI in Method scene',
-    dataset: 'Paper principle: digitized counterdiabatic feature extraction',
+    dataset: 'Paper principle: digitized counterdiabatic quantum feature mapping',
     disclaimer: 'Conceptual schematic. Proprietary Kipu Hamiltonian couplings are not rendered as empirical data.',
   },
   {

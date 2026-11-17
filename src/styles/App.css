@@ -504,10 +504,6 @@ body {
   font-size: var(--text-sm);
 }
 
-.challenge-footer .shell-nav-button {
-  flex: 0 0 auto;
-}
-
 .method-scene {
   width: 100%;
 }
@@ -564,12 +560,75 @@ body {
 
 .method-step-header {
   display: flex;
+  align-items: center;
+  flex-wrap: wrap;
   justify-content: space-between;
+  gap: var(--space-md);
   margin: var(--space-md) 0 var(--space-sm);
+}
+
+.method-step-title {
   color: var(--color-text-muted);
   font-family: var(--font-mono);
   font-size: var(--text-xs);
   text-transform: uppercase;
+}
+
+/* Local subscene pager: quiet, neutral controls so they never compete with
+   the shell navigation (Back / Next) at the bottom of the page. */
+.method-pager {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.method-pager-button {
+  display: inline-flex;
+  min-width: var(--touch-target-min);
+  min-height: var(--touch-target-min);
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-brand-bright);
+  cursor: pointer;
+}
+
+.method-pager-button:hover:not(:disabled) {
+  color: var(--color-text-primary);
+}
+
+.method-pager-button:disabled {
+  cursor: default;
+  color: var(--color-text-muted);
+  opacity: 0.35;
+}
+
+.method-pager-dots {
+  display: inline-flex;
+  gap: 6px;
+  padding-inline: var(--space-xs);
+}
+
+.method-pager-dots i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-text-muted);
+  opacity: 0.5;
+  transition: opacity 0.2s ease, background 0.2s ease;
+}
+
+.method-pager-dots i.is-active {
+  background: var(--color-text-primary);
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .method-pager-dots i {
+    transition: none;
+  }
 }
 
 .method-step-panel {
@@ -805,18 +864,6 @@ body {
   color: var(--color-brand-bright);
   font-family: var(--font-mono);
   font-size: var(--text-sm);
-}
-
-.method-footer {
-  display: flex;
-  justify-content: space-between;
-  gap: var(--space-md);
-  margin-top: var(--space-md);
-}
-
-.method-footer button:disabled {
-  cursor: not-allowed;
-  opacity: 0.4;
 }
 
 .feature-space-scene {
@@ -1204,7 +1251,6 @@ body {
 .results-bar-fill-raw { background: var(--color-warning); }
 .results-bar-fill-quantum { background: var(--color-brand-bright); }
 .results-bar-fill-hybrid { background: var(--color-interaction); }
-.results-bar-fill-hgb_raw { background: var(--color-neutral-light); }
 
 .results-bar-row small,
 .results-muted,
@@ -1239,6 +1285,10 @@ body {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--space-md);
   margin-top: var(--space-md);
+}
+
+.results-grid-single {
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .results-pr-grid {
@@ -1405,10 +1455,6 @@ body {
   margin-top: var(--space-md);
   color: var(--color-text-muted);
   font-size: var(--text-sm);
-}
-
-.results-footer .shell-nav-button {
-  flex-shrink: 0;
 }
 
 .results-modal-backdrop {
@@ -1833,7 +1879,7 @@ body {
 .lab-footer {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   gap: var(--space-md);
   margin-top: var(--space-md);
   color: var(--color-text-muted);
@@ -4614,7 +4660,6 @@ input[type="range"] {
 .bar-raw { background: #FB923C; }
 .bar-quantum { background: #00E5FF; }
 .bar-hybrid { background: #7F77DD; }
-.bar-hgb { background: #9EACC2; }
 
 .bar-val {
   width: 45px;

@@ -19,7 +19,7 @@ export function BrandingShowcase() {
       <div className="branding-showcase-grid">
         <section className="brand-scene brand-scene-dark">
           <span className="eyebrow">Scene container</span>
-          <h3>Quantum Feature Extraction</h3>
+          <h3>Quantum Feature Mapping</h3>
           <p>One message, one visual focus, one clear action.</p>
           <div className="brand-actions">
             <button type="button" className="brand-button brand-button-primary">

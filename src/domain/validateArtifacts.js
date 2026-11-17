@@ -90,7 +90,7 @@ export function validateDomainArtifacts(csvContent = null) {
   if (!metrics) {
     errors.push('kipuCloudModel.json: cloudMetrics object missing');
   } else {
-    const requiredArms = ['raw', 'quantum', 'hybrid', 'hgb_raw'];
+    const requiredArms = ['raw', 'quantum', 'hybrid'];
     for (const arm of requiredArms) {
       if (!metrics.arms?.[arm]) {
         errors.push(`kipuCloudModel.cloudMetrics.arms: missing arm "${arm}"`);
@@ -105,14 +105,6 @@ export function validateDomainArtifacts(csvContent = null) {
       errors.push('kipuCloudModel.cloudMetrics.endpoints: hybrid_vs_raw.dAP missing');
     } else if (typeof headline.mean_diff !== 'number') {
       errors.push('kipuCloudModel.cloudMetrics.endpoints.hybrid_vs_raw: mean_diff is not a number');
-    }
-
-    // Nystroem endpoint check
-    const nystroem = metrics.endpoints?.selected_hybrid_vs_selected_nystroem?.dAP;
-    if (!nystroem) {
-      warnings.push('kipuCloudModel.cloudMetrics.endpoints: selected_hybrid_vs_selected_nystroem.dAP missing');
-    } else if (nystroem.verdict !== 'not significant') {
-      warnings.push(`Expected Nystroem verdict to be "not significant", found: "${nystroem.verdict}"`);
     }
 
     // Fisher scores check

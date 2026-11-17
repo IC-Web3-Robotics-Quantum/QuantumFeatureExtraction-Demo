@@ -83,7 +83,7 @@ fs.writeFileSync(path.join(OUTPUT_DIR, 'mining_shovel_test.csv'), toCSV(testScal
 const metadata = {
   name: 'Mining Shovel Electric Telemetry (Synthetic Twin)',
   description:
-    'Synthetic digital twin of an electric mining shovel with 4 physical sensor channels and operational deviation indicator for Kipu Rimay DQFE.',
+    'Synthetic digital twin of an electric mining shovel with 4 physical sensor channels and operational deviation indicator for Kipu Rimay DQFM.',
   numTrainSamples: trainScaled.length,
   numTestSamples: testScaled.length,
   features: featureNames,

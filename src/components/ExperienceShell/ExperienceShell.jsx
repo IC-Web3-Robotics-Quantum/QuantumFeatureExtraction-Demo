@@ -63,8 +63,8 @@ function Welcome() {
   return (
     <section className="shell-attractor">
       <span className="shell-eyebrow">NTT DATA × Kipu Quantum</span>
-      <h1>Quantum Feature Extraction</h1>
-      <p>Exploring industrial telemetry through classical and quantum-inspired representations.</p>
+      <h1>Quantum Feature Mapping</h1>
+      <p>Exploring industrial telemetry through classical and quantum representations.</p>
       <Link className="shell-cta" to="/experience">Touch to explore</Link>
     </section>
   );

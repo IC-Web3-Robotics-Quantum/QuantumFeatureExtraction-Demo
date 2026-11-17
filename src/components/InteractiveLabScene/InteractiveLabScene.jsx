@@ -5,7 +5,7 @@ import { Scatter } from '../Scatter/Scatter.jsx';
 import { ModeSwitch } from '../LiveBoardPanel/ModeSwitch.jsx';
 import { PHYSICAL_RANGES, SLIDER_FIELDS, midpointReading } from '../../data/calibration.js';
 import { STAGED_SCENARIOS } from '../../data/stagedScenarios.js';
-import { getAllRecords } from '../../domain/recordRepository.js';
+import { getAllRecords, getOperatingPoints } from '../../domain/recordRepository.js';
 import { RAW, QNAMES_SHORT, UNITS } from '../../data/constants.js';
 import { useExperience } from '../../context/ExperienceContext.jsx';
 import { useLiveBoard } from '../../hooks/useLiveBoard.js';
@@ -15,6 +15,15 @@ const RECORDS = getAllRecords();
 const RAW_POINTS = RECORDS.map((record) => [record.sensors[0], record.sensors[1]]);
 const QUANTUM_POINTS = RECORDS.map((record) => [record.qFeatures[1], record.qFeatures[5]]);
 const LABELS = RECORDS.map((record) => record.label);
+const OPERATING_POINTS = getOperatingPoints();
+const TARGET_CATCH_RATE = Math.round(OPERATING_POINTS.quantum.recall * 100);
+
+const ORIGIN_COPY = {
+  record: { heading: 'Saved record selection', label: 'Saved record' },
+  preset: { heading: 'Curated saved case', label: 'Curated case' },
+  sliders: { heading: 'Simulated inputs', label: 'Simulated sliders' },
+  esp32: { heading: 'ESP32 live input', label: 'ESP32 board' },
+};
 
 function formatValue(value, unit) {
   return `${Number(value ?? 0).toFixed(1)} ${unit}`;
@@ -54,8 +63,13 @@ export function InteractiveLabScene() {
   const effectiveReading = activeRecord.rawSensors;
   const activeMode = liveBoard.activeMode;
   const activeAlert = activeMode === 'classical' ? exp.classicalAlert : exp.quantumAlert;
-  const reading = liveBoard.reading || requestedPhysical || midpointReading();
-  const activeScenario = STAGED_SCENARIOS.find((scenario) => scenario.recordId === activeRecordId);
+  // The shared requested reading is the single source for the sliders, so they
+  // always reflect the active record, a curated case, Reset or ESP32 input.
+  const reading = requestedPhysical || midpointReading();
+  const originCopy = ORIGIN_COPY[exp.inputOrigin] || ORIGIN_COPY.record;
+  const activeScenario = match.exact
+    ? STAGED_SCENARIOS.find((scenario) => scenario.recordId === activeRecordId)
+    : null;
 
   const requestedDistance = match.exact ? '0.0000' : match.distance.toFixed(4);
   const selectedRawPoints = useMemo(() => RAW_POINTS, []);
@@ -69,7 +83,8 @@ export function InteractiveLabScene() {
   };
 
   const choosePreset = (scenario) => {
-    liveBoard.startSimulation(scenario.reading, 'preset');
+    // Curated cases point to a saved record: select it exactly (distance 0).
+    exp.selectRecord(scenario.recordId, 'preset');
   };
 
   return (
@@ -80,12 +95,12 @@ export function InteractiveLabScene() {
           <h1>What happens when the readings change?</h1>
           <p>Move the four physical inputs or select a saved case. Every panel follows the same matched record.</p>
         </div>
-        <span className="lab-provenance">Offline · 1,000 saved cases</span>
+        <span className="lab-provenance">1,000 cases</span>
       </div>
 
       <div className="lab-layout">
         <section className="lab-machine-panel">
-          <span className="lab-panel-label">Conceptual machine scene</span>
+          <span className="lab-panel-label">Electric rope shovel</span>
           <div className="lab-machine">
             <MachineDiagram alert={activeAlert} label={activeRecord.label} mode={activeMode} />
           </div>
@@ -93,14 +108,13 @@ export function InteractiveLabScene() {
             <strong>{activeAlert ? 'ALERT ACTIVE' : 'ALL CLEAR'}</strong>
             <span>{activeMode} score for matched case #{activeRecordId}</span>
           </div>
-          <p className="lab-note">The diagram is an interface for a synthetic scenario, not a deployed customer asset.</p>
         </section>
 
         <section className="lab-controls-panel">
           <div className="lab-panel-header">
             <div>
               <span className="lab-panel-label">Input source</span>
-              <h2>{liveBoard.isSimulating ? 'Simulated inputs' : 'Saved record selection'}</h2>
+              <h2>{originCopy.heading}</h2>
             </div>
             <span className={`lab-connection-status is-${liveBoard.status}`}>
               {liveBoard.status}
@@ -157,7 +171,7 @@ export function InteractiveLabScene() {
               min="0"
               max="999"
               value={activeRecordId}
-              onChange={(event) => exp.selectRecord(event.target.value)}
+              onChange={(event) => exp.selectRecord(Number(event.target.value))}
             />
             <strong>#{activeRecordId}</strong>
           </div>
@@ -180,12 +194,12 @@ export function InteractiveLabScene() {
           <div>
             <span className="lab-panel-label">Matched saved record</span>
             <strong>#{activeRecordId} · {activeRecord.label === 1 ? 'Deviation' : 'Normal'}</strong>
-            <small>Origin: {exp.inputOrigin} · {activeScenario?.label || 'Free-form reading'}</small>
+            <small>Origin: {originCopy.label}{activeScenario ? ` · ${activeScenario.label}` : ''}</small>
           </div>
           <div>
             <span className="lab-panel-label">Normalized distance</span>
             <strong>{requestedDistance}</strong>
-            <small>{match.exact ? 'Exact saved case' : 'Nearest saved case; not a confidence score'}</small>
+            <small>{match.exact ? 'Exact saved case' : 'Nearest saved case'}</small>
           </div>
         </div>
         <div className="lab-readings">
@@ -217,7 +231,9 @@ export function InteractiveLabScene() {
             <ScoreCard label="Classical" score={exp.classicalScore} threshold={exp.classicalThreshold} alert={exp.classicalAlert} />
             <ScoreCard label="Quantum" score={exp.quantumScore} threshold={exp.quantumThreshold} alert={exp.quantumAlert} />
           </div>
-          <p className="lab-note">Scores are precomputed per saved case. This Lab does not generate an HGB score.</p>
+          <p className="lab-note">
+            Alert thresholds are set to catch about {TARGET_CATCH_RATE}% of labelled deviations.
+          </p>
         </section>
       </div>
 
@@ -232,7 +248,6 @@ export function InteractiveLabScene() {
       </section>
 
       <div className="lab-footer">
-        <span>ESP32 input is optional; disconnecting it leaves simulated mode available.</span>
         <Link className="shell-nav-button" to="/experience">Back to menu</Link>
       </div>
     </section>

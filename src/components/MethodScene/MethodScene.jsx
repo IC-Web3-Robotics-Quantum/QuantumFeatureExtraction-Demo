@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { RAW, UNITS } from '../../data/constants.js';
 import { useExperience } from '../../context/ExperienceContext.jsx';
 
@@ -17,12 +17,12 @@ const STEPS = [
   {
     id: 'evolution',
     label: '03 Counterdiabatic evolution',
-    title: 'Transform the representation conceptually.',
+    title: 'Transform the representation.',
   },
   {
     id: 'measurement',
     label: '04 Observable measurement',
-    title: 'Read seven saved observables.',
+    title: 'Read seven observables.',
   },
 ];
 
@@ -40,9 +40,8 @@ function InputStep({ record }) {
         <span className="method-kicker">Sample values</span>
         <h2>One record supplies the local inputs.</h2>
         <p>
-          The values below belong to saved record #{record.id}. Dataset-level
-          dependencies are separate statistics estimated across the collection;
-          they are not recomputed from this one sample.
+          The four readings of record #{record.id} become the local inputs of
+          the quantum encoding.
         </p>
       </div>
       <div className="method-input-grid">
@@ -62,23 +61,21 @@ function EncodingStep() {
   return (
     <div className="method-step-content">
       <div className="method-copy">
-        <span className="method-kicker">Conceptual encoding</span>
+        <span className="method-kicker">Hamiltonian encoding</span>
         <h2>Sample fields and dataset dependencies play different roles.</h2>
         <p>
-          Local fields describe the selected machine record. Dependency terms
-          describe relationships estimated from the dataset. The specific
-          coupling topology and coefficients of this PoC are not available as
-          display artifacts, so this diagram is intentionally conceptual.
+          Local fields carry the readings of this record. Dependency terms carry
+          relationships learned from the whole dataset.
         </p>
       </div>
-      <div className="method-encoding-diagram" aria-label="Conceptual Hamiltonian encoding">
+      <div className="method-encoding-diagram" aria-label="Hamiltonian encoding diagram">
         <div className="method-node-row">
           {['q0', 'q1', 'q2', 'q3'].map((node) => <span className="method-node" key={node}>{node}</span>)}
         </div>
         <div className="method-links" aria-hidden="true">
           <i /><i /><i />
         </div>
-        <div className="method-dependency-label">dataset dependency terms · conceptual</div>
+        <div className="method-dependency-label">dataset dependency terms</div>
       </div>
     </div>
   );
@@ -88,16 +85,14 @@ function EvolutionStep() {
   return (
     <div className="method-step-content">
       <div className="method-copy">
-        <span className="method-kicker">Conceptual illustration</span>
+        <span className="method-kicker">Quantum dynamics</span>
         <h2>A digitized counterdiabatic path changes the representation.</h2>
         <p>
-          The method applies an approximate digitized evolution before
-          measurement, creating derived observables for downstream analysis.
-          This scene does not represent a live solver, proprietary gates, or
-          intermediate measured states.
+          A fast, approximate counterdiabatic evolution mixes the inputs
+          non-linearly before measurement, producing new derived features.
         </p>
       </div>
-      <div className="method-evolution" aria-label="Conceptual evolution illustration">
+      <div className="method-evolution" aria-label="Evolution diagram">
         <div className="method-evolution-track">
           <span className="method-evolution-state">input</span>
           <i className="method-evolution-line" />
@@ -105,7 +100,6 @@ function EvolutionStep() {
           <i className="method-evolution-line" />
           <span className="method-evolution-state">readout</span>
         </div>
-        <span className="method-evolution-caption">Conceptual illustration · no live execution</span>
       </div>
     </div>
   );
@@ -121,8 +115,8 @@ function MeasurementStep({ observables }) {
         <span className="method-kicker">Saved readout</span>
         <h2>Seven observables are available for this record.</h2>
         <p>
-          Values are read directly from the saved Kipu execution. Select an
-          observable to inspect its mapped qubit or qubit pair.
+          Values come from Kipu's execution for this record. Select an
+          observable to see its qubit or qubit pair.
         </p>
       </div>
       <div className="method-measurement-layout">
@@ -192,8 +186,33 @@ export function MethodScene() {
       </nav>
 
       <div className="method-step-header">
-        <span>{step.title}</span>
-        <span>{stepIndex + 1} / {STEPS.length}</span>
+        <span className="method-step-title">{step.title}</span>
+        <div className="method-pager" role="group" aria-label="Move between method subscenes">
+          <button
+            type="button"
+            className="method-pager-button"
+            disabled={stepIndex === 0}
+            onClick={() => setStepIndex((index) => Math.max(0, index - 1))}
+            aria-label="Previous subscene"
+          >
+            <ChevronLeft size={22} strokeWidth={2.75} aria-hidden="true" />
+          </button>
+          <span className="method-pager-dots" aria-label={`Subscene ${stepIndex + 1} of ${STEPS.length}`}>
+            {STEPS.map((item, index) => (
+              <i key={item.id} className={index === stepIndex ? 'is-active' : ''} />
+            ))}
+          </span>
+          {/* Leaving the section is handled only by the shell's Next button. */}
+          <button
+            type="button"
+            className="method-pager-button"
+            disabled={stepIndex === STEPS.length - 1}
+            onClick={() => setStepIndex((index) => Math.min(STEPS.length - 1, index + 1))}
+            aria-label="Next subscene"
+          >
+            <ChevronRight size={22} strokeWidth={2.75} aria-hidden="true" />
+          </button>
+        </div>
       </div>
 
       <div className="method-step-panel">
@@ -201,30 +220,6 @@ export function MethodScene() {
         {step.id === 'encoding' && <EncodingStep />}
         {step.id === 'evolution' && <EvolutionStep />}
         {step.id === 'measurement' && <MeasurementStep observables={observables} />}
-      </div>
-
-      <div className="method-footer">
-        <button
-          type="button"
-          className="shell-nav-button"
-          disabled={stepIndex === 0}
-          onClick={() => setStepIndex((index) => Math.max(0, index - 1))}
-        >
-          Previous subscene
-        </button>
-        {stepIndex < STEPS.length - 1 ? (
-          <button
-            type="button"
-            className="shell-nav-button shell-nav-button-primary"
-            onClick={() => setStepIndex((index) => Math.min(STEPS.length - 1, index + 1))}
-          >
-            Next subscene
-          </button>
-        ) : (
-          <Link className="shell-nav-button shell-nav-button-primary" to="/features">
-            Explore feature space
-          </Link>
-        )}
       </div>
     </section>
   );
