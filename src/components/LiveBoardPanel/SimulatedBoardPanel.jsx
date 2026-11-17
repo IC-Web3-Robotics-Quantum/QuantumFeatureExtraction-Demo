@@ -4,7 +4,6 @@ import { STAGED_SCENARIOS } from '../../data/stagedScenarios.js';
 
 export { midpointReading };
 
-
 /* On-screen stand-in for the physical potentiometers — drag a slider and it
    drives the same scoring path a real board message would (useLiveBoard's
    applyReading). Automatically snaps to the closest of the 1000 real Kipu test records. */
@@ -20,11 +19,7 @@ export function SimulatedBoardPanel({
   const handleUpdate = onChange || onUpdate;
   const hasAutoStarted = useRef(false);
 
-  // Auto-initialize simulation once, the first time the panel is opened, so
-  // it shows a populated preview immediately. Fires only once (tracked via
-  // the ref, not just the isSimulating dependency) so that after the user
-  // explicitly exits via "Exit Simulation" below, it does not immediately
-  // restart itself.
+  // Auto-initialize simulation once, the first time the panel is opened
   useEffect(() => {
     if (!hasAutoStarted.current && !isSimulating && onStart) {
       hasAutoStarted.current = true;
@@ -32,8 +27,6 @@ export function SimulatedBoardPanel({
     }
   }, [isSimulating, onStart]);
 
-  // Any interaction re-engages simulation if the user had exited it, so
-  // "Exit Simulation" isn't a dead end — dragging a slider again still works.
   const engage = (nextReading) => {
     if (!isSimulating && onStart) {
       onStart(nextReading);
@@ -66,8 +59,13 @@ export function SimulatedBoardPanel({
             <span className="sim-snap-badge">
               📍 Snapped: Real Kipu Case #{result.recordId}
             </span>
-            <span className="sim-snap-similarity">
-              {result.similarity}% Match
+            <span
+              className="sim-snap-similarity"
+              title="Normalized 4D Euclidean distance to precomputed test record"
+            >
+              {result.exact || result.distance === 0
+                ? 'Exact match (dist: 0)'
+                : `Distance: ${result.distance}`}
             </span>
           </div>
           <div className="sim-snap-detail">
@@ -99,37 +97,28 @@ export function SimulatedBoardPanel({
               max={max}
               step={step}
               value={currentValue}
-              onChange={(event) => {
+              onChange={(e) =>
                 engage({
                   ...activeReading,
-                  [key]: Number(event.target.value),
-                });
-              }}
-              aria-label={`Simulated ${label}`}
+                  [key]: Number(e.target.value),
+                })
+              }
             />
           </div>
         );
       })}
 
       <div className="sim-board-footer no-drag">
-        <button
-          type="button"
-          className="live-board-action-btn sim-preset-reset-btn no-drag"
-          onClick={() => engage(midpointReading())}
-          title="Reset all 4 knobs to baseline midpoint"
-        >
-          ↺ Reset Knobs
-        </button>
-        <button
-          type="button"
-          className="live-board-action-btn no-drag"
-          onClick={() => onStop && onStop()}
-          title="Exit simulation and return to the record explorer slider"
-        >
-          ⏻ Exit Simulation
-        </button>
+        {onStop && (
+          <button
+            type="button"
+            className="sim-exit-btn no-drag"
+            onClick={onStop}
+          >
+            Reset Simulator
+          </button>
+        )}
       </div>
     </div>
   );
 }
-

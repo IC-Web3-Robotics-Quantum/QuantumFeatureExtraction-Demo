@@ -1,29 +1,29 @@
 export const C = {
-  navy: '#081120',
-  panel: '#0F1B2D',
-  panel2: '#14233A',
-  panel3: '#192B45',
-  border: '#263954',
+  navy: '#070F26',
+  panel: '#0D1938',
+  panel2: '#132247',
+  panel3: '#1A2D5C',
+  border: '#2E404D',
 
-  text: '#F7F9FC',
-  white: '#F8FAFF',
+  text: '#FFFFFF',
+  white: '#FFFFFF',
   grey: '#9EACC2',
 
-  classical: '#7C8EA8',
-  classicalLight: '#AAB7C8',
+  classical: '#0072BC',
+  classicalLight: '#19A3FC',
 
-  quantum: '#9B5DE5',
-  quantumLight: '#D8B4FE',
-  quantumDark: '#4C1D7A',
+  quantum: '#19A3FC',
+  quantumLight: '#00DFED',
+  quantumDark: '#0072BC',
 
-  interaction: '#8BE9FD',
+  interaction: '#00DFED',
 
-  healthy: '#79C9B7',
-  deviation: '#FB923C',
-  selected: '#FDE68A',
+  healthy: '#00CB5D',
+  deviation: '#FF7A00',
+  selected: '#19A3FC',
 
-  positive: '#4ADE80',
-  warning: '#FBBF24',
+  positive: '#00CB5D',
+  warning: '#FF7A00',
 };
 
 export const RAW = ['Hoist Load', 'Crowd Vib.', 'Drive Temp.', 'Cable Tension'];

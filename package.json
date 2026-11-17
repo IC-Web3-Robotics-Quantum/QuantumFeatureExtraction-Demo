@@ -16,7 +16,8 @@
     "kipu-inspect": "node scripts/inspectKipuService.js",
     "kipu-submit": "node scripts/submitRimayJob.js",
     "kipu-sync": "node scripts/syncKipuResults.js",
-    "kipu-rimay": "node scripts/submitRimayJob.js"
+    "kipu-rimay": "node scripts/submitRimayJob.js",
+    "test": "node --test test/**/*.test.js"
   },
   "dependencies": {
     "@quantum-hub/qhub-api": "^2.4.0",
@@ -25,7 +26,8 @@
     "lucide-react": "^1.28.0",
     "qrcode.react": "^4.2.0",
     "react": "^19.2.7",
-    "react-dom": "^19.2.7"
+    "react-dom": "^19.2.7",
+    "react-router-dom": "^7.18.5"
   },
   "devDependencies": {
     "@types/react": "^19.2.17",

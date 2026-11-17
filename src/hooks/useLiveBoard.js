@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { liveScore } from '../utils/liveScore.js';
 import { matchStagedScenario } from '../data/stagedScenarios.js';
 import { midpointReading } from '../data/calibration.js';
+import { PHYSICAL_RANGES } from '../data/calibration.js';
 
 /*
   WebSocket client for the physical ESP32 board (docs/demo-fisico-spec.md
@@ -16,14 +17,12 @@ import { midpointReading } from '../data/calibration.js';
 
   Also supports a "simulated board" mode: dragging the sliders in
   SimulatedBoardPanel calls updateSimulation() directly, going through the
-  exact same applyReading() path a real WS message would — so demoing the
-  concept in a meeting (no hardware, no waiting for a timer to cycle) shows
-  the real scoring pipeline, not a mock of it.
+  exact same applyReading() path a real WS message would.
 */
 
 const RECONNECT_DELAY_MS = 3000;
 
-export function useLiveBoard() {
+export function useLiveBoard(onExternalReading) {
   const defaultReading = midpointReading();
   const [status, setStatus] = useState('disconnected'); // disconnected | connecting | connected | error
   const [url, setUrl] = useState('ws://192.168.4.1/ws');
@@ -35,23 +34,26 @@ export function useLiveBoard() {
   const [lastError, setLastError] = useState(null);
   const [manualMode, setManualMode] = useState('quantum'); // used until the board sends a real `mode`
 
-
   const wsRef = useRef(null);
   const reconnectTimerRef = useRef(null);
   const enabledRef = useRef(enabled);
   enabledRef.current = enabled;
 
   // Single place that turns a raw 4-value reading into a verdict — used by
-  // both the WS message handler and the slider-driven simulation, so
-  // there's exactly one scoring path regardless of where the reading came
-  // from.
-  const applyReading = useCallback((nextReading) => {
-    setReading(nextReading);
-    const score = liveScore(nextReading);
-    setResult(score);
-    setStagedMatch(matchStagedScenario(nextReading));
-    return score;
-  }, []);
+  // both the WS message handler and the slider-driven simulation.
+  const applyReading = useCallback(
+    (nextReading, origin = 'sliders') => {
+      setReading(nextReading);
+      const score = liveScore(nextReading);
+      setResult(score);
+      setStagedMatch(matchStagedScenario(nextReading));
+      if (typeof onExternalReading === 'function') {
+        onExternalReading(nextReading, origin);
+      }
+      return score;
+    },
+    [onExternalReading]
+  );
 
   const disconnect = useCallback(() => {
     setEnabled(false);
@@ -76,10 +78,10 @@ export function useLiveBoard() {
   );
 
   const startSimulation = useCallback(
-    (initialReading) => {
+    (initialReading, origin = 'sliders') => {
       disconnect();
       setIsSimulating(true);
-      applyReading(initialReading || defaultReading);
+      applyReading(initialReading || defaultReading, origin);
     },
     [disconnect, applyReading, defaultReading]
   );
@@ -90,7 +92,7 @@ export function useLiveBoard() {
 
   const updateSimulation = useCallback(
     (nextReading) => {
-      applyReading(nextReading);
+      applyReading(nextReading, 'sliders');
     },
     [applyReading]
   );
@@ -119,52 +121,57 @@ export function useLiveBoard() {
       socket.onopen = () => {
         if (cancelled) return;
         setStatus('connected');
+        setLastError(null);
       };
 
       socket.onmessage = (event) => {
         if (cancelled) return;
-
-        let payload;
+        let msg;
         try {
-          payload = JSON.parse(event.data);
+          msg = JSON.parse(event.data);
         } catch {
-          return; // ignore malformed frames rather than crashing the demo
-        }
-
-        const {
-          hoistLoad,
-          crowdVib,
-          driveTemp,
-          cableTension,
-          mode,
-        } = payload;
-
-        if (
-          typeof hoistLoad !== 'number' ||
-          typeof crowdVib !== 'number' ||
-          typeof driveTemp !== 'number' ||
-          typeof cableTension !== 'number'
-        ) {
+          setLastError('ESP32 message is not valid JSON.');
           return;
         }
 
-        const nextReading = { hoistLoad, crowdVib, driveTemp, cableTension, mode };
-        const score = applyReading(nextReading);
+        const sensorKeys = ['hoistLoad', 'crowdVib', 'driveTemp', 'cableTension'];
+        const invalidKey = sensorKeys.find((key) => {
+          const value = Number(msg?.[key]);
+          const range = PHYSICAL_RANGES[key];
+          return !Number.isFinite(value) || value < range.min || value > range.max;
+        });
+        if (invalidKey) {
+          setLastError(`ESP32 payload has an invalid ${invalidKey} reading.`);
+          return;
+        }
+
+        const nextReading = sensorKeys.reduce((reading, key) => {
+          reading[key] = Number(msg[key]);
+          return reading;
+        }, {});
+        if (msg.mode === 'classical' || msg.mode === 'quantum') {
+          nextReading.mode = msg.mode;
+        }
+
+        const score = applyReading(nextReading, 'esp32');
 
         if (socket.readyState === WebSocket.OPEN) {
-          socket.send(
-            JSON.stringify({
-              classicalAlert: score.classicalAlert,
-              quantumAlert: score.quantumAlert,
-            })
-          );
+          try {
+            socket.send(
+              JSON.stringify({
+                classicalAlert: score.classicalAlert,
+                quantumAlert: score.quantumAlert,
+              })
+            );
+          } catch (error) {
+            setLastError(`ESP32 response failed: ${error.message}`);
+          }
         }
       };
 
       socket.onerror = () => {
         if (cancelled) return;
         setStatus('error');
-        setLastError('WebSocket error');
       };
 
       socket.onclose = () => {
@@ -192,36 +199,30 @@ export function useLiveBoard() {
         wsRef.current = null;
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [enabled, url]);
+  }, [enabled, url, applyReading]);
 
-  // The switch is always clickable — a board's `mode` field just syncs the
-  // starting position, it never locks the on-screen control. Otherwise a
-  // simulated or manually-testing session could get stuck unable to flip it.
-  useEffect(() => {
-    if (reading?.mode) setManualMode(reading.mode);
-  }, [reading?.mode]);
+  const activeMode = reading?.mode || manualMode;
 
-  const activeMode = manualMode;
-  const isLive = status === 'connected' || isSimulating || result !== null;
-
+  const setMode = useCallback((nextMode) => {
+    setManualMode(nextMode);
+  }, []);
 
   return {
     status,
     url,
+    enabled,
+    isSimulating,
     reading,
     result,
     stagedMatch,
     lastError,
+    activeMode,
     connect,
     disconnect,
-    isSimulating,
     startSimulation,
     stopSimulation,
     updateSimulation,
-    isLive,
-    activeMode,
-    manualMode,
-    setManualMode,
+    setMode,
+    setManualMode: setMode,
   };
 }

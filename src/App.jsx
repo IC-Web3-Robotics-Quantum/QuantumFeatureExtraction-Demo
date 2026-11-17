@@ -1,36 +1,36 @@
 import { useMemo, useState } from 'react';
+import { BrowserRouter } from 'react-router-dom';
 
-import { C, RAW, QNAMES, QNAMES_SHORT } from './data/constants';
-import { runPipeline } from './utils/pipeline';
-import { meanOff } from './utils/correlation';
-import { decisionStatus } from './utils/decisionStatus';
-import { useThresholdPopover } from './hooks/useThresholdPopover';
-import { useLiveBoard } from './hooks/useLiveBoard';
-import { physicalToUnit } from './data/calibration';
+import { C, RAW, QNAMES, QNAMES_SHORT } from './data/constants.js';
+import { runPipeline } from './utils/pipeline.js';
+import { meanOff } from './utils/correlation.js';
+import { decisionStatus } from './utils/decisionStatus.js';
+import { useThresholdPopover } from './hooks/useThresholdPopover.js';
+import { useLiveBoard } from './hooks/useLiveBoard.js';
+import { ExperienceProvider, useExperience } from './context/ExperienceContext.jsx';
 
-
-import { Header } from './components/Header/Header';
-import { SourceDataSection } from './components/SourceDataSection/SourceDataSection';
-import { StickyControls } from './components/StickyControls/StickyControls';
-import { ThresholdPopover } from './components/ThresholdPopover/ThresholdPopover';
-import { FeatureSpaceCard } from './components/FeatureSpaceCard/FeatureSpaceCard';
-import { QuantumCircuitSection } from './components/QuantumCircuitSection/QuantumCircuitSection';
-import { FeatureSpaceComparison } from './components/FeatureSpaceComparison/FeatureSpaceComparison';
-import { MethodologyNote } from './components/MethodologyNote/MethodologyNote';
-import { LiveBoardPanel } from './components/LiveBoardPanel/LiveBoardPanel';
-import { InnovationCenterSection } from './components/InnovationCenterSection/InnovationCenterSection';
-
+import { Header } from './components/Header/Header.jsx';
+import { SourceDataSection } from './components/SourceDataSection/SourceDataSection.jsx';
+import { StickyControls } from './components/StickyControls/StickyControls.jsx';
+import { ThresholdPopover } from './components/ThresholdPopover/ThresholdPopover.jsx';
+import { FeatureSpaceCard } from './components/FeatureSpaceCard/FeatureSpaceCard.jsx';
+import { QuantumCircuitSection } from './components/QuantumCircuitSection/QuantumCircuitSection.jsx';
+import { FeatureSpaceComparison } from './components/FeatureSpaceComparison/FeatureSpaceComparison.jsx';
+import { MethodologyNote } from './components/MethodologyNote/MethodologyNote.jsx';
+import { LiveBoardPanel } from './components/LiveBoardPanel/LiveBoardPanel.jsx';
+import { InnovationCenterSection } from './components/InnovationCenterSection/InnovationCenterSection.jsx';
+import { BrandingShowcase } from './components/BrandingShowcase/BrandingShowcase.jsx';
+import { ExperienceShell } from './components/ExperienceShell/ExperienceShell.jsx';
 
 /*
-  QUANTUM FEATURE MAPPING LAB (Real Dataset Mode)
-  Story: physical machine → 4 source signals → classical or quantum
-  feature-mapped representation → feature-space comparison → reference
-  analytical validation at a comparable operating target (recall ≥ 90%).
+  QUANTUM FEATURE MAPPING LAB (Unified State Architecture)
+  Single source of truth via ExperienceProvider:
+  physical machine (Section 1) and feature space validation (Section 2)
+  now synchronize perfectly to the same active record and requested inputs.
 */
 
-export default function App() {
-  const [noise, setNoise] = useState(1);
-  const [sample, setSample] = useState(0);
+function AppContent() {
+  const exp = useExperience();
   const [circuitOpen, setCircuitOpen] = useState(false);
 
   const {
@@ -41,31 +41,8 @@ export default function App() {
     thresholdPopoverRef,
   } = useThresholdPopover();
 
-  // --- SECTION 1 STATE & CONTROLS: Physical / Simulated Live Board ---
-  const liveBoard = useLiveBoard();
-
-  const section1Reading = liveBoard.reading;
-  const section1Result = liveBoard.result;
-  const section1Sensors = section1Result?.x ?? (section1Reading ? physicalToUnit(section1Reading) : [0.5, 0.5, 0.5, 0.5]);
-  const section1Label = section1Result?.label ?? (liveBoard.stagedMatch?.knownTruth === 'deviation' ? 1 : 0);
-  const section1ClassicalAlert = section1Result?.classicalAlert ?? false;
-  const section1QuantumAlert = section1Result?.quantumAlert ?? false;
-  const section1MachineAlert = liveBoard.activeMode === 'classical' ? section1ClassicalAlert : section1QuantumAlert;
-  const section1RecordId = section1Result?.recordId ?? 0;
-
-  const section1DisplayValues = section1Reading
-    ? [
-        `${section1Reading.hoistLoad.toFixed(1)} kN`,
-        `${section1Reading.crowdVib.toFixed(1)} mm/s`,
-        `${section1Reading.driveTemp.toFixed(1)} °C`,
-        `${section1Reading.cableTension.toFixed(1)} MPa`,
-      ]
-    : [
-        '250.0 kN',
-        '25.0 mm/s',
-        '110.0 °C',
-        '100.5 MPa',
-      ];
+  // Adapter connecting peripheral live board / simulated sliders to unified experience state
+  const liveBoard = useLiveBoard(exp.setRequestedReading);
 
   const sensorColors = [
     C.interaction,
@@ -74,16 +51,16 @@ export default function App() {
     C.classicalLight,
   ];
 
-  // --- SECTION 2 STATE & CONTROLS: Plant Noise & Dataset Record Exploration (Lab Controls) ---
-  const R = useMemo(() => runPipeline(noise), [noise]);
+  // Section 2: Pipeline execution for correlation matrices and background scatter distribution
+  const R = useMemo(() => runPipeline(exp.noise), [exp.noise]);
 
-  const visibleCount = R.records ? R.records.length : 1000;
-  const visibleSample = Math.min(sample, visibleCount - 1);
+  const visibleCount = 1000;
+  const activeId = exp.activeRecordId;
 
   const rawCorrelation = meanOff(R.classical.corr);
   const quantumCorrelation = meanOff(R.quantum.corr);
 
-  const [featureA, featureB] = R.quantum.top || [1, 5];
+  const [featureA, featureB] = exp.selectedAxes.quantum;
 
   const rawPoints = R.test.X.slice(0, visibleCount).map((row) => [
     row[0],
@@ -97,21 +74,26 @@ export default function App() {
 
   const labels = R.test.y.slice(0, visibleCount);
 
-  // Section 2 selected record: strictly driven by Lab Controls' visibleSample
-  const sec2Label = R.test.y[visibleSample] ?? 0;
-  const sec2ConditionColor = sec2Label ? C.deviation : C.healthy;
+  // Synchronized single record state across Section 1 and Section 2
+  const activeRecord = exp.activeRecord;
+  const currentLabel = activeRecord.label;
+  const conditionColor = exp.conditionColor;
 
-  const classicalThreshold = R.classical.op.threshold;
-  const quantumThreshold = R.quantum.op.threshold;
+  const classicalThreshold = exp.classicalThreshold;
+  const quantumThreshold = exp.quantumThreshold;
 
-  const sec2ClassicalScore = R.classical.scores[visibleSample] ?? 0;
-  const sec2QuantumScore = R.quantum.scores[visibleSample] ?? 0;
+  const classicalScore = exp.classicalScore;
+  const quantumScore = exp.quantumScore;
 
-  const sec2ClassicalAlert = sec2ClassicalScore >= classicalThreshold;
-  const sec2QuantumAlert = sec2QuantumScore >= quantumThreshold;
+  const classicalAlert = exp.classicalAlert;
+  const quantumAlert = exp.quantumAlert;
 
-  const sec2ClassicalStatus = decisionStatus(sec2Label, sec2ClassicalAlert);
-  const sec2QuantumStatus = decisionStatus(sec2Label, sec2QuantumAlert);
+  const machineAlert = liveBoard.activeMode === 'classical' ? classicalAlert : quantumAlert;
+  const showBrandingPreview =
+    new URLSearchParams(window.location.search).get('branding-preview') === '1';
+
+  const classicalStatus = decisionStatus(currentLabel, classicalAlert);
+  const quantumStatus = decisionStatus(currentLabel, quantumAlert);
 
   const aucDelta = (R.quantum.auc - R.classical.auc) * 100;
   const falseAlarmReduction =
@@ -147,13 +129,13 @@ export default function App() {
       color: C.classicalLight,
     },
     selected: {
-      index: visibleSample,
-      label: sec2Label,
-      conditionColor: sec2ConditionColor,
-      score: sec2ClassicalScore,
+      index: activeId,
+      label: currentLabel,
+      conditionColor,
+      score: classicalScore,
       threshold: classicalThreshold,
-      alert: sec2ClassicalAlert,
-      status: sec2ClassicalStatus,
+      alert: classicalAlert,
+      status: classicalStatus,
     },
   };
 
@@ -191,15 +173,23 @@ export default function App() {
       color: C.quantumLight,
     },
     selected: {
-      index: visibleSample,
-      label: sec2Label,
-      conditionColor: sec2ConditionColor,
-      score: sec2QuantumScore,
+      index: activeId,
+      label: currentLabel,
+      conditionColor,
+      score: quantumScore,
       threshold: quantumThreshold,
-      alert: sec2QuantumAlert,
-      status: sec2QuantumStatus,
+      alert: quantumAlert,
+      status: quantumStatus,
     },
   };
+
+  if (showBrandingPreview) {
+    return (
+      <div className="app branding-preview-page">
+        <BrandingShowcase />
+      </div>
+    );
+  }
 
   return (
     <div className="app">
@@ -208,25 +198,25 @@ export default function App() {
       <div className="divider" />
 
       <SourceDataSection
-        visibleSample={section1RecordId}
-        selectedSensors={section1Sensors}
+        visibleSample={activeId}
+        selectedSensors={activeRecord.sensors}
         sensorColors={sensorColors}
-        alert={section1MachineAlert}
-        label={section1Label}
+        alert={machineAlert}
+        label={currentLabel}
         mode={liveBoard.activeMode}
         liveMode={true}
-        sensorDisplayValues={section1DisplayValues}
+        sensorDisplayValues={exp.displayValues}
       />
 
       <LiveBoardPanel liveBoard={liveBoard} />
 
       <StickyControls
-        noise={noise}
-        onNoiseChange={setNoise}
-        visibleSample={visibleSample}
+        noise={exp.noise}
+        onNoiseChange={exp.setNoise}
+        visibleSample={activeId}
         visibleCount={visibleCount}
-        selectedLabel={sec2Label}
-        onSampleChange={setSample}
+        selectedLabel={currentLabel}
+        onSampleChange={exp.selectRecord}
         showThresholdExplanation={showThresholdExplanation}
         onToggleThresholdExplanation={() =>
           setShowThresholdExplanation((open) => !open)
@@ -246,7 +236,7 @@ export default function App() {
         circuitOpen={circuitOpen}
         onToggle={() => setCircuitOpen((open) => !open)}
       />
-      
+
       <div className="band">
         SAME DATA RECORD <strong>→</strong> TWO COMPLEMENTARY FEATURE SPACES
       </div>
@@ -267,5 +257,15 @@ export default function App() {
 
       <InnovationCenterSection />
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <ExperienceProvider>
+      <BrowserRouter>
+        <ExperienceShell lab={<AppContent />} />
+      </BrowserRouter>
+    </ExperienceProvider>
   );
 }
